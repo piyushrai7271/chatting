@@ -1,0 +1,1 @@
+## A basic chat application with proper use of complete Auth(otp,google Outh2.0) and socket.io for chat application
