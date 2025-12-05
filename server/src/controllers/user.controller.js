@@ -1,4 +1,5 @@
 import User from "../models/user.model.js";
+import { v2 as cloudinary } from "cloudinary";
 import jwt from "jsonwebtoken";
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -402,6 +403,158 @@ const logOut = async (req, res) => {
     });
   }
 };
+const addAvatar = async (req, res) => {
+  try {
+    const userId = req.userId;  // from middleware
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized user !!",
+      });
+    }
+
+    // multer + cloudinary file
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Avatar file is missing",
+      });
+    }
+
+    // Cloudinary URL
+    const avatarUrl = req.file.path;
+
+    // find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found with userId",
+      });
+    }
+
+    // save url
+    user.avatar = avatarUrl;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Avatar uploaded successfully !!",
+      avatarUrl,
+    });
+  } catch (error) {
+    console.error("Error on uploading avatar:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error !!",
+    });
+  }
+};
+const updateAvatar = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized user !!",
+      });
+    }
+
+    // new avatar file from multer
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "New avatar file is required",
+      });
+    }
+
+    const newAvatarUrl = req.file.path;
+
+    // find user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found !!",
+      });
+    }
+
+    // if old avatar exists, delete it from Cloudinary
+    if (user.avatar) {
+      const publicId = user.avatar.split("/").pop().split(".")[0];
+      await cloudinary.uploader.destroy(`NodeBoilerPlate/${publicId}`);
+    }
+
+    // save new avatar
+    user.avatar = newAvatarUrl;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Avatar updated successfully !!",
+      avatarUrl: newAvatarUrl,
+    });
+
+  } catch (error) {
+    console.error("Error updating avatar:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error !!",
+    });
+  }
+};
+const deleteAvatar = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized user !!",
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found !!",
+      });
+    }
+
+    if (!user.avatar) {
+      return res.status(400).json({
+        success: false,
+        message: "No avatar exists to delete",
+      });
+    }
+
+    // extract public id from url
+    const publicId = user.avatar.split("/").pop().split(".")[0];
+
+    // delete from cloudinary
+    await cloudinary.uploader.destroy(`NodeBoilerPlate/${publicId}`);
+
+    // remove from DB
+    user.avatar = undefined;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Avatar deleted successfully !!",
+    });
+
+  } catch (error) {
+    console.error("Error deleting avatar:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error !!",
+    });
+  }
+};
+
 
 export {
   regesterUser,
@@ -410,4 +563,7 @@ export {
   refreshAccessToken,
   getUserDetails,
   logOut,
+  addAvatar,
+  updateAvatar,
+  deleteAvatar
 };
