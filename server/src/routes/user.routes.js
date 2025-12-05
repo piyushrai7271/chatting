@@ -1,4 +1,5 @@
 import express from "express"
+import {verifyJWT} from "../middleware/userAuth.middleware.js";
 import {
     regesterUser,
     login,
@@ -12,10 +13,10 @@ const router = express.Router();
 
 router.post("/register",regesterUser);
 router.post("/login",login);
-router.post("/changePassword",changePassword);
+router.post("/changePassword",verifyJWT,changePassword);
 router.post("/refresh-token",refreshAccessToken);
-router.get("/getUserDetails",getUserDetails);
-router.post("/logOut",logOut);
+router.get("/getUserDetails",verifyJWT,getUserDetails);
+router.post("/logOut",verifyJWT,logOut);
 
 
 export default router;

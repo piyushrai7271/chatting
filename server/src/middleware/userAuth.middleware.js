@@ -3,38 +3,47 @@ import jwt from "jsonwebtoken";
 
 const verifyJWT = async (req, res, next) => {
   try {
+    // Get token from cookies or Authorization header
     const token =
-      (await req.cookies?.accessToken) ||
+      req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
 
     if (!token) {
-      return res.status(404).json({
+      return res.status(401).json({
         success: false,
-        message: "Unauthorize access",
+        message: "Unauthorized: No access token provided",
       });
     }
 
-    const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    // Verify token
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
-    const user = await User.findById(decodedToken?._id).select(
+    // Get user
+    const user = await User.findById(decoded._id).select(
       "-password -refreshToken"
     );
 
     if (!user) {
-      return res.status(402).json({
+      return res.status(401).json({
         success: false,
-        message: "user is not matching in auth",
+        message: "Unauthorized: User not found",
       });
     }
 
+    // Attach user to request
     req.user = user;
     req.userId = user._id;
+
     next();
   } catch (error) {
-    console.error("Error in jwt auth middleware", error);
+    console.error("Error in jwt auth middleware:", error);
+
     return res.status(401).json({
       success: false,
-      message: "Invalid access token",
+      message:
+        error.name === "TokenExpiredError"
+          ? "Access token expired"
+          : "Invalid access token",
     });
   }
 };
