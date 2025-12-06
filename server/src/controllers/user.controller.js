@@ -555,7 +555,7 @@ const deleteAvatar = async (req, res) => {
     });
   }
 };
-const googleAuthCallback = async (req, res) => {
+const OAuthCallback = async (req, res) => {
   try {
     // user is added through middleware
     const user = req.user;
@@ -588,17 +588,18 @@ const googleAuthCallback = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Google OAuth Login Successful",
+      message: "OAuth Login Successfull !!",
       user,
     });
   } catch (err) {
     return res.status(500).json({
       success: false,
-      message: "Google OAuth Login Failed",
+      message: "OAuth Login Failed !",
       error: err.message,
     });
   }
 };
+
 
 
 export {
@@ -611,5 +612,5 @@ export {
   addAvatar,
   updateAvatar,
   deleteAvatar,
-  googleAuthCallback
+  OAuthCallback
 };

@@ -19,13 +19,14 @@ const userSchema = new mongoose.Schema(
     },
     mobileNumber: {
       type: String,
-      required: true,
+      trim: true,
     },
     gender: {
       type: String,
       enum: ["Male", "Female", "Other"],
     },
-    avatar: { // avatar image url will come from cloudinary
+    avatar: {
+      // avatar image url will come from cloudinary
       type: String,
     },
     password: {
@@ -40,12 +41,17 @@ const userSchema = new mongoose.Schema(
     },
     googleId: {
       type: String,
-      default:null,
-      sparse:true // Create a unique index ONLY for documents where this field exists
+      default: null,
+      sparse: true, // Create a unique index ONLY for documents where this field exists
+    },
+    githubId: {
+      type: String,
+      default: null,
+      sparse: true,
     },
     authProvider: {
       type: String,
-      enum: ["local", "google"],
+      enum: ["local", "google", "github"],
       default: "local",
     },
   },
@@ -53,7 +59,6 @@ const userSchema = new mongoose.Schema(
 );
 
 // userSchema.set("strictQuery", true);
-
 
 // Hash password (ONLY for local users)
 userSchema.pre("save", async function () {
@@ -69,7 +74,7 @@ userSchema.methods.isPasswordCorrect = async function (inPassword) {
   return await bcrypt.compare(inPassword.toString(), this.password);
 };
 
-// access token generation 
+// access token generation
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
@@ -88,7 +93,7 @@ userSchema.methods.generateAccessToken = function () {
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
-      _id:this._id,
+      _id: this._id,
     },
     process.env.REFRESH_TOKEN_SECRET,
     {

@@ -1,5 +1,6 @@
 import express from "express";
 import passport from "../config/google.strategy.js";
+import gitPassport from "../config/github.js";
 import { verifyJWT } from "../middleware/userAuth.middleware.js";
 import { upload } from "../config/cloudinary.js";
 import {
@@ -12,7 +13,7 @@ import {
   addAvatar,
   updateAvatar,
   deleteAvatar,
-  googleAuthCallback
+  OAuthCallback
 } from "../controllers/user.controller.js";
 const router = express.Router();
 
@@ -42,7 +43,29 @@ router.get(
     failureRedirect: "/login",
     session: false     // <-- IMPORTANT
   }),
-  googleAuthCallback
+  OAuthCallback
 );
+
+// GitHub Login Route
+router.get(
+  "/github",
+  gitPassport.authenticate("github",{ 
+    scope:["user:profile","user:email"],
+    session: false 
+  })
+);
+
+// GitHub callback
+router.get(
+  "/github/callback",
+  gitPassport.authenticate("github", {
+    failureRedirect: "/login",
+    session: false,
+  }),
+  OAuthCallback   // SAME CALLBACK — because logic is identical
+);
+
+
+
 
 export default router;
