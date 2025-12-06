@@ -1,4 +1,5 @@
 import express from "express";
+import passport from "../config/google.strategy.js";
 import { verifyJWT } from "../middleware/userAuth.middleware.js";
 import { upload } from "../config/cloudinary.js";
 import {
@@ -11,6 +12,7 @@ import {
   addAvatar,
   updateAvatar,
   deleteAvatar,
+  googleAuthCallback
 } from "../controllers/user.controller.js";
 const router = express.Router();
 
@@ -23,5 +25,24 @@ router.post("/logOut", verifyJWT, logOut);
 router.post("/addAvatar",verifyJWT,upload.single("avatar"),addAvatar);
 router.put("/updateAvatar",verifyJWT,upload.single("avatar"),updateAvatar);
 router.delete("/deleteAvatar",verifyJWT,deleteAvatar);
+
+
+// google Pauth 2.0
+router.get(
+  "/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+    session: false     // <-- IMPORTANT
+  })
+);
+
+router.get(
+  "/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: "/login",
+    session: false     // <-- IMPORTANT
+  }),
+  googleAuthCallback
+);
 
 export default router;

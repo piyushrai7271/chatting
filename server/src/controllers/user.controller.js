@@ -335,7 +335,8 @@ const getUserDetails = async (req, res) => {
         email: user.email,
         mobileNumber: user.mobileNumber,
         gender: user.gender,
-        avatar: user.avatar
+        avatar: user.avatar,
+        googleId:user.googleId
       },
     });
   } catch (error) {
@@ -554,6 +555,50 @@ const deleteAvatar = async (req, res) => {
     });
   }
 };
+const googleAuthCallback = async (req, res) => {
+  try {
+    // user is added through middleware
+    const user = req.user;
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+      user._id
+    );
+
+    // remove sensitive fields
+    user.password = undefined;
+
+    // cookie options
+    const accessTokenOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 5 * 60 * 1000, // 5 minutes
+    };
+
+    const refreshTokenOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    };
+
+    // set cookies
+    res.cookie("accessToken", accessToken, accessTokenOptions);
+    res.cookie("refreshToken", refreshToken, refreshTokenOptions);
+
+    return res.status(200).json({
+      success: true,
+      message: "Google OAuth Login Successful",
+      user,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Google OAuth Login Failed",
+      error: err.message,
+    });
+  }
+};
 
 
 export {
@@ -565,5 +610,6 @@ export {
   logOut,
   addAvatar,
   updateAvatar,
-  deleteAvatar
+  deleteAvatar,
+  googleAuthCallback
 };
