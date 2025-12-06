@@ -1,6 +1,6 @@
 import express from "express";
 import cookieParser from "cookie-parser";
-import passport from "./config/google.strategy.js";
+import passport from "./config/passport/google.strategy.js";
 import cors from "cors";
 const app = express();
 

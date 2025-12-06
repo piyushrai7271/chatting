@@ -1,6 +1,6 @@
 import express from "express";
-import passport from "../config/google.strategy.js";
-import gitPassport from "../config/github.js";
+import passport from "../config/passport/google.strategy.js";
+import gitPassport from "../config/passport/github.js";
 import { verifyJWT } from "../middleware/userAuth.middleware.js";
 import { upload } from "../config/cloudinary.js";
 import {

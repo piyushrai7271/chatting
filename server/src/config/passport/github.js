@@ -1,7 +1,7 @@
 import gitPassport from "passport";
 import { Strategy as GitHubStrategy } from "passport-github2";
 import dotenv from "dotenv";
-import { findOrCreateGithubUser } from "../services/auth/githubAuth.service.js";
+import { findOrCreateGithubUser } from "../../services/auth/githubAuth.service.js";
 
 dotenv.config();
 
